@@ -191,9 +191,9 @@ class aho_corasic : public MultiRunner<aho_corasic_return> {
 		{
 			// Unpack pat_data
 			int pattern_count = pat_data.pattern_count;
-			auto goto_fn = pat_data.goto_fn;
-			auto failure_fn = pat_data.failure_fn;
-			auto output_fn = pat_data.output_fn;
+			auto& goto_fn = pat_data.goto_fn;
+			auto& failure_fn = pat_data.failure_fn;
+			auto& output_fn = pat_data.output_fn;
 
 			int state = 0;
 			int n = sequence.length();
