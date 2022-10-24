@@ -5,13 +5,8 @@
    is coded directly from the algorithm pseudo-code in the Aho-Corasick paper.
    */
 
-#include <algorithm>
-#include <iomanip>
-#include <iostream>
 #include <queue>
 #include <set>
-#include <sstream>
-#include <stdexcept>
 #include <string>
 #include <vector>
 #include <string_view>
@@ -30,11 +25,9 @@
 // Rather than implement a translation table for the four characters in the DNA
 // alphabet, for now just let the alphabet be the full ASCII range and only use
 // those four.
-// #define ASIZE 128
 constexpr int ASIZE = 128;
 
 // The "fail" value is used to determine certain states in the goto function.
-// #define FAIL -1
 constexpr int FAIL = -1;
 
 /*
@@ -43,48 +36,8 @@ constexpr int FAIL = -1;
    inefficient, given that our alphabet is actually just four characters. Use
    this array to shorten those loops.
    */
-// #define OFFSETS_COUNT 4
 constexpr int OFFSETS_COUNT = 4;
 static std::array<int, OFFSETS_COUNT> ALPHA_OFFSETS = {65, 67, 71, 84};
-
-/*
-  Need a simple implementation of a set with just a few operations (add,
-  contains, create, and union).
-*/
-
-// How big to create the initial set-storage.
-#define SET_SIZE 8
-
-class Set {
-public:
-  std::vector<int> elements;
-
-  Set() { elements.reserve(SET_SIZE); }
-
-  void add(const int num) { elements.push_back(num); }
-
-  bool has(const int num) {
-    bool found = false;
-
-    for (int value : elements) {
-      if (value == num) {
-        found = true;
-        break;
-      }
-    }
-
-    return found;
-  }
-
-  void set_union(const Set &b) {
-    for (int value : b.elements) {
-      if (!has(value))
-        add(value);
-    }
-
-    return;
-  }
-};
 
 /*
    Enter the given pattern into the given goto-function, creating new states as
@@ -93,7 +46,7 @@ public:
    */
 void enter_pattern(std::string_view pat, int idx,
 		std::vector<std::vector<int>> &goto_fn,
-		std::vector<Set> &output_fn) {
+		std::vector<std::set<int>> &output_fn) {
 
 	int len = pat.length();
 	int j = 0; 
@@ -116,36 +69,37 @@ void enter_pattern(std::string_view pat, int idx,
 		state = new_state;
 	}
 
-	output_fn[state].add(idx);
-
-	return;
+	output_fn[state].insert(idx);
 }
 
 /*
    Build the goto function and the (partial) output function.
    */
-void build_goto(std::vector<std::string_view> const &pats, int num_pats,
+void build_goto(std::vector<std::string_view> pats, int num_pats,
 		std::vector<std::vector<int>> &goto_fn,
-		std::vector<Set> &output_fn) {
+		std::vector<std::set<int>> &output_fn) {
 	int max_states = 0;
 
 	// Calculate the maximum number of states as being the sum of the lengths of
 	// patterns. This is overkill, but a more "serious" implementation would
 	// have a more "serious" graph implementation for the goto function.
+	/*
 	max_states = std::accumulate(
 			pats.begin(), 
 			pats.end(), 
 			0, 
 			[](int init, std::string_view pat){return init += pat.length();}
 			);
+			*/
+	for (int i = 0; i < num_pats; i++) {
+		max_states += pats[i].length();
+	}
 
 	// Allocate for the goto function
-	goto_fn.resize(max_states, std::vector<int>(ASIZE));
-	for (int i = 0; i < max_states; i++)
-		std::fill_n(goto_fn[i].begin(), ASIZE, FAIL);
+	goto_fn.resize(max_states, std::vector<int>(ASIZE, FAIL));
 
 	// Allocate for the output function
-	output_fn.resize(max_states, Set());
+	output_fn.resize(max_states, std::set<int>());
 
 	// OK, now actually build the goto function and output function.
 
@@ -157,22 +111,19 @@ void build_goto(std::vector<std::string_view> const &pats, int num_pats,
 	for (int i = 0; i < ASIZE; i++)
 		if (goto_fn[0][i] == FAIL)
 			goto_fn[0][i] = 0;
-
-	return;
 }
 
 /*
    Build the failure function and complete the output function.
    */
 std::vector<int> build_failure(std::vector<std::vector<int>> const &goto_fn,
-		std::vector<Set> &output_fn) {
+		std::vector<std::set<int>> &output_fn) {
 	// Need a simple queue of state numbers.
 	std::queue<int> queue;
 
 	// Allocate the failure function storage. This also needs to be as long as
 	// goto_fn is, for safety.
 	std::vector<int> failure_fn(goto_fn.size());
-	// failure_fn.resize(goto_fn.size(), 0);
 
 	// The queue starts out empty. Set it to be all states reachable from state 0
 	// and set failure(state) for those states to be 0.
@@ -182,7 +133,6 @@ std::vector<int> build_failure(std::vector<std::vector<int>> const &goto_fn,
 			continue;
 
 		queue.push(state);
-		failure_fn[state] = 0;
 	}
 
 	// This uses some single-letter variable names that match the published
@@ -202,7 +152,8 @@ std::vector<int> build_failure(std::vector<std::vector<int>> const &goto_fn,
 			while (goto_fn[state][a] == FAIL)
 				state = failure_fn[state];
 			failure_fn[s] = goto_fn[state][a];
-			output_fn[s].set_union(output_fn[failure_fn[s]]);
+			output_fn[s].insert(output_fn[s].begin(),
+					output_fn[s].end());
 		}
 	}
 
@@ -213,19 +164,18 @@ struct aho_corasic_return {
 	int pattern_count;
 	std::vector<std::vector<int>> goto_fn;
 	std::vector<int> failure_fn;
-	std::vector<Set> output_fn;
+	std::vector<std::set<int>> output_fn;
 };
 
 class aho_corasic : public MultiRunner<aho_corasic_return> {
 	public:
 		aho_corasic_return initializer(std::vector<std::string_view> patterns_data)
 		{
-			aho_corasic_return return_val;
 			int patterns_count = patterns_data.size();
 
 			// Initialize the multi-pattern structure.
 			std::vector<std::vector<int>> goto_fn;
-			std::vector<Set> output_fn;
+			std::vector<std::set<int>> output_fn;
 			build_goto(patterns_data, patterns_count, goto_fn, output_fn);
 			std::vector<int> failure_fn = build_failure(goto_fn, output_fn);
 
@@ -255,7 +205,7 @@ class aho_corasic : public MultiRunner<aho_corasic_return> {
 				}
 
 				state = goto_fn[state][sequence[i]];
-				for (auto output: output_fn[state].elements) {
+				for (auto output: output_fn[state]) {
 					matches[output]++;
 				}
 			}

@@ -139,7 +139,7 @@ int MultiRunner<T>::run(std::string name, int argc, char* argv[]){
 	T pat_data = initializer(sv_patterns_data);
 
 	for (int sequence = 0; sequence < sequences_count; sequence++) {
-		std::string& sequence_str = sequences_data[sequence];
+		std::string_view sequence_str = sequences_data[sequence];
 
 		std::vector<int> matches = algorithm(pat_data, sequence_str);
 
