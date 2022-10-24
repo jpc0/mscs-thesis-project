@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "input.hpp"
-#include "run.hpp"
 
 #if defined(__INTEL_LLVM_COMPILER)
 #define LANG "cpp-intel"
@@ -40,6 +39,7 @@ double get_time() {
   instances in all sequences, and the number of misses otherwise. An exception
   is thrown on non-recoverable errors.
 */
+/*
 int run(initializer init, algorithm code, std::string name, int argc,
         char *argv[]) {
   if (argc < 3 || argc > 4) {
@@ -70,12 +70,12 @@ int run(initializer init, algorithm code, std::string name, int argc,
   double start_time = get_time();
   int return_code = 0; // Used for noting if some number of matches fail
   for (int pattern = 0; pattern < patterns_count; pattern++) {
-    std::string pattern_str = patterns_data[pattern];
+    std::string& pattern_str = patterns_data[pattern];
     // Pre-process the pattern before applying it to all sequences.
     std::vector<PatternData> pat_data = init(pattern_str);
 
     for (int sequence = 0; sequence < sequences_count; sequence++) {
-      std::string sequence_str = sequences_data[sequence];
+      std::string& sequence_str = sequences_data[sequence];
 
       int matches = code(pat_data, sequence_str);
 
@@ -97,11 +97,13 @@ int run(initializer init, algorithm code, std::string name, int argc,
 
   return return_code;
 }
+*/
 
 /*
   This is a variation of "run" that handles algorithms that do multi-pattern
   matching.
 */
+/*
 int run_multi(mp_initializer init, mp_algorithm code, std::string name,
               int argc, char *argv[]) {
   if (argc < 3 || argc > 4) {
@@ -136,7 +138,7 @@ int run_multi(mp_initializer init, mp_algorithm code, std::string name,
   std::vector<MultiPatternData> pat_data = init(patterns_data);
 
   for (int sequence = 0; sequence < sequences_count; sequence++) {
-    std::string sequence_str = sequences_data[sequence];
+    std::string& sequence_str = sequences_data[sequence];
 
     std::vector<int> matches = code(pat_data, sequence_str);
 
@@ -162,3 +164,4 @@ int run_multi(mp_initializer init, mp_algorithm code, std::string name,
 
   return return_code;
 }
+*/

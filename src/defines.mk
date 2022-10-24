@@ -1,7 +1,11 @@
 # Shared elements between languages' Makefiles
 
-ALGORITHMS := kmp boyer_moore shift_or aho_corasick
-LONG_ALGORITHMS := kmp boyer_moore shift_or
+# ALGORITHMS := kmp boyer_moore shift_or aho_corasick
+# LONG_ALGORITHMS := kmp boyer_moore shift_or
+# SHORT_ALGORITHMS := aho_corasick
+
+ALGORITHMS := kmp aho_corasick
+LONG_ALGORITHMS := kmp
 SHORT_ALGORITHMS := aho_corasick
 
 # Default the run-count values, in case they aren't explicitly passed in.
