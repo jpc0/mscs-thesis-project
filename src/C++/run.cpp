@@ -72,12 +72,12 @@ int run(initializer init, algorithm code, std::string name, int argc,
   for (int pattern = 0; pattern < patterns_count; pattern++) {
     std::string pattern_str = patterns_data[pattern];
     // Pre-process the pattern before applying it to all sequences.
-    std::vector<PatternData> pat_data = (*init)(pattern_str);
+    std::vector<PatternData> pat_data = init(pattern_str);
 
     for (int sequence = 0; sequence < sequences_count; sequence++) {
       std::string sequence_str = sequences_data[sequence];
 
-      int matches = (*code)(pat_data, sequence_str);
+      int matches = code(pat_data, sequence_str);
 
       if (answers_data.size() && matches != answers_data[pattern][sequence]) {
         std::cerr << "Pattern " << pattern + 1 << " mismatch against sequence "
@@ -133,12 +133,12 @@ int run_multi(mp_initializer init, mp_algorithm code, std::string name,
   int return_code = 0; // Used for noting if some number of matches fail
 
   // Pre-process the patterns before applying to all sequences.
-  std::vector<MultiPatternData> pat_data = (*init)(patterns_data);
+  std::vector<MultiPatternData> pat_data = init(patterns_data);
 
   for (int sequence = 0; sequence < sequences_count; sequence++) {
     std::string sequence_str = sequences_data[sequence];
 
-    std::vector<int> matches = (*code)(pat_data, sequence_str);
+    std::vector<int> matches = code(pat_data, sequence_str);
 
     if (answers_data.size()) {
       for (int pattern = 0; pattern < patterns_count; pattern++) {
