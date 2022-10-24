@@ -127,6 +127,7 @@ int MultiRunner<T>::run(std::string name, int argc, char* argv[]){
 			throw std::runtime_error{
 				"Count mismatch between patterns file and answers file"};
 	}
+	std::vector<std::string_view> sv_patterns_data{patterns_data.begin(), patterns_data.end()};
 
 	// Run it. For each sequence, try each pattern against it. The code function
 	// pointer will return the number of matches found, which will be compared to
@@ -135,7 +136,7 @@ int MultiRunner<T>::run(std::string name, int argc, char* argv[]){
 	int return_code = 0; // Used for noting if some number of matches fail
 
 	// Pre-process the patterns before applying to all sequences.
-	T pat_data = initializer({patterns_data.begin(), patterns_data.end()});
+	T pat_data = initializer(sv_patterns_data);
 
 	for (int sequence = 0; sequence < sequences_count; sequence++) {
 		std::string& sequence_str = sequences_data[sequence];
